@@ -1,5 +1,6 @@
+import { ILogger, logger } from 'inlada-logger';
 import { PriorityList } from './priorityList';
-import { ITransactionFn, ITransactionProcessor, ITransactionService } from "./intefaces";
+import { ITransactionFn, ITransactionProcessor, ITransactionService } from './intefaces';
 
 const storage = {
   massActions: {
@@ -26,12 +27,22 @@ const mass = async (fnList: PriorityList<ITransactionFn>, uid: string) => fnList
   .get()
   .reduce((acc, f = () => Promise.resolve()) => acc.then(() => f(uid)), Promise.resolve())
   .catch(err => {
-    // logger.error(err.stack)
+    logger.error(`Error in transactionProcessor: uid:${uid}, \n message: ${err?.message} \n stack: ${err.stack}`);
   });
 
 const onStart = (uid: string) => mass(storage.massActions.$start, uid);
 const onSuccess = (uid: string) => mass(storage.massActions.$start, uid);
 const onFail = (uid: string) => mass(storage.massActions.$fail, uid);
+
+const settings: {
+  logger: ILogger
+} = {
+  logger,
+};
+
+export const setLogger = (newLogger: ILogger) => {
+  settings.logger = newLogger;
+};
 
 export const transactionProcessor: ITransactionProcessor = {
   registerTransactionService,
