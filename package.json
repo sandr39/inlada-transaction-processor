@@ -1,6 +1,6 @@
 {
-  "name": "inlada-transacion-processor",
-  "version": "1.0.0",
+  "name": "inlada-transaction-processor",
+  "version": "1.0.1",
   "description": "Transaction processor, part of inladajs framework",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
