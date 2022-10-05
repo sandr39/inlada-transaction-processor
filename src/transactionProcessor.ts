@@ -1,6 +1,18 @@
-import { ILogger, logger } from 'inlada-logger';
 import { PriorityList } from './priorityList';
 import { ITransactionFn, ITransactionProcessor, ITransactionService } from './intefaces';
+
+type ILogger = Record<'debug' | 'info' | 'log' | 'warning' | 'error', (uid: string | null, ...messages: any) => void>;
+
+const settings: {
+  logger: ILogger
+} = {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  logger: Object.fromEntries(['debug', 'info', 'log', 'warning', 'error'].map(f => [f, () => {}])) as unknown as ILogger,
+};
+
+export const setLogger = (newLogger: ILogger) => {
+  settings.logger = newLogger;
+};
 
 const storage = {
   massActions: {
@@ -27,22 +39,12 @@ const mass = async (fnList: PriorityList<ITransactionFn>, uid: string) => fnList
   .get()
   .reduce((acc, f = () => Promise.resolve()) => acc.then(() => f(uid)), Promise.resolve())
   .catch(err => {
-    logger.error(`Error in transactionProcessor: uid:${uid}, \n message: ${err?.message} \n stack: ${err.stack}`);
+    settings.logger?.error(`Error in transactionProcessor: uid:${uid}, \n message: ${err?.message} \n stack: ${err.stack}`);
   });
 
 const onStart = (uid: string) => mass(storage.massActions.$start, uid);
-const onSuccess = (uid: string) => mass(storage.massActions.$start, uid);
+const onSuccess = (uid: string) => mass(storage.massActions.$success, uid);
 const onFail = (uid: string) => mass(storage.massActions.$fail, uid);
-
-const settings: {
-  logger: ILogger
-} = {
-  logger,
-};
-
-export const setLogger = (newLogger: ILogger) => {
-  settings.logger = newLogger;
-};
 
 export const transactionProcessor: ITransactionProcessor = {
   registerTransactionService,
